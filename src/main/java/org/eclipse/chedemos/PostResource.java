@@ -1,0 +1,62 @@
+package org.eclipse.chedemos;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import com.google.common.base.Strings;
+
+import org.jboss.logging.Logger;
+
+
+@Path("/posts")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public class PostResource {
+  private static final Logger LOG = Logger.getLogger(PostResource.class);
+  private Set<Post> posts = Collections.newSetFromMap(Collections.synchronizedMap(new LinkedHashMap<>()));
+
+  public PostResource() {
+    posts.add(new Post("Hello CodeOne 2019", "Welcome to the CRW demo."));
+  }
+  
+  @GET
+  public Response list() {
+    List<Post> postsSorted = 
+      posts.stream()
+        .sorted((e1, e2) -> -1*e1.getTimestamp().compareTo(e2.getTimestamp()))
+        .collect(Collectors.toList());
+    return Response.ok(postsSorted).build();
+  }
+
+  @POST
+  public Response add(Post post) {
+    if (Strings.isNullOrEmpty(post.getContent()) || Strings.isNullOrEmpty(post.getTitle())) {
+      return Response.status(400).build();
+    }
+    posts.add(post);
+    return Response.ok(posts).build();
+  }
+
+  @DELETE
+  public Response delete(Post post) {
+    if (post != null) {
+      LOG.infof("hello %s", post.toString());
+      posts.remove(post);
+      return Response.ok(posts).build();
+    } else {
+      return Response.status(400).build();
+    }
+  }
+}

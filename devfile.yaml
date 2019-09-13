@@ -1,0 +1,88 @@
+apiVersion: 1.0.0
+metadata:
+  generateName: che-quarkus-demo-
+projects:
+  - name: quarkus-demo
+    source:
+      type: git
+      location: https://github.com/amisevsk/che-quarkus-demo
+      branch: dev
+components:
+  - 
+    alias: quarkus-builder
+    type: dockerimage
+    image: amisevsk/che-quarkus-builder:dev
+    memoryLimit: 2Gi
+    mountSources: true
+    command: ['tail']
+    args: ['-f', '/dev/null']
+    volumes:
+      - name: mavenrepo
+        containerPath: /project/.m2
+  - 
+    alias: quarkus-runner
+    type: dockerimage
+    image: amisevsk/che-quarkus-runner:dev
+    memoryLimit: 64Mi
+    mountSources: true
+    command: ['tail']
+    args: ['-f', '/dev/null']
+  - 
+    alias: java
+    type: chePlugin
+    id: redhat/java/latest
+    memoryLimit: 1536M
+  - 
+    alias: frontend
+    type: dockerimage
+    image: amisevsk/che-demo-frontend
+    memoryLimit: 64Mi
+    mountSources: false
+    command: ['tail']
+    args: ['-f', '/dev/null']
+    endpoints:
+      - name: '3000/tcp'
+        port: 3000
+commands:
+  - name: compile quarkus:dev
+    actions:
+      - type: exec
+        command: pkill java; mvn compile quarkus:dev
+        component: quarkus-builder
+        workdir: /projects/che-quarkus-demo/
+  - name: package
+    actions:
+      - type: exec
+        command: mvn package
+        component: quarkus-builder
+        workdir: /projects/che-quarkus-demo/
+  - name: package -Pnative
+    actions:
+      - type: exec
+        command: mvn package -Pnative
+        component: quarkus-builder
+        workdir: /projects/che-quarkus-demo/
+  - name: start native
+    actions:
+      - type: exec
+        command: ./quarkus-demo-1.0-SNAPSHOT-runner -Dquarkus.http.host=0.0.0.0
+        component: quarkus-runner
+        workdir: /projects/che-quarkus-demo/target
+  - name: stop native
+    actions:
+      - type: exec
+        command: pkill quarkus-demo-1.0-SNAPSHOT-runner
+        component: quarkus-runner
+        workdir: /projects/che-quarkus-demo/target
+  - name: start frontend
+    actions:
+      - type: exec
+        command: serve -l 3000 -s "/app"
+        component: frontend
+        workdir: /
+  - name: stop frontend
+    actions:
+      - type: exec
+        command: pkill node
+        component: frontend
+        workdir: /
