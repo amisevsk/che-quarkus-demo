@@ -33,29 +33,17 @@ public class PostResource {
   
   @GET
   public Response list() {
-    List<Post> postsSorted = 
-      posts.stream()
-        .sorted((e1, e2) -> -1*e1.getTimestamp().compareTo(e2.getTimestamp()))
-        .collect(Collectors.toList());
-    return Response.ok(postsSorted).build();
+    return Response.ok(posts).build();
   }
 
   @POST
   public Response add(Post post) {
-    if (Strings.isNullOrEmpty(post.getContent()) || Strings.isNullOrEmpty(post.getTitle())) {
-      return Response.status(400).build();
-    }
     posts.add(post);
     return Response.ok(posts).build();
   }
 
   @DELETE
   public Response delete(Post post) {
-    if (post != null) {
-      posts.remove(post);
-      return Response.ok(posts).build();
-    } else {
-      return Response.status(400).build();
-    }
+    return Response.ok().build();
   }
 }
