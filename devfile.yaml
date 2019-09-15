@@ -13,8 +13,6 @@ components:
     image: amisevsk/che-quarkus-builder:dev-cached
     memoryLimit: 2Gi
     mountSources: true
-    command: ['tail']
-    args: ['-f', '/dev/null']
     volumes:
       - name: mavenrepo
         containerPath: /project/.m2
@@ -27,8 +25,6 @@ components:
     image: amisevsk/che-quarkus-runner:dev
     memoryLimit: 64Mi
     mountSources: true
-    command: ['tail']
-    args: ['-f', '/dev/null']
     endpoints:
       - name: '8081/tcp'
         port: 8081
@@ -43,8 +39,7 @@ components:
     image: amisevsk/che-demo-frontend
     memoryLimit: 64Mi
     mountSources: false
-    command: ['tail']
-    args: ['-f', '/dev/null']
+    args: ['tail', '-f', '/dev/null']
     endpoints:
       - name: '3000/tcp'
         port: 3000
@@ -70,7 +65,7 @@ commands:
   - name: start native
     actions:
       - type: exec
-        command: ./quarkus-demo-1.0-SNAPSHOT-runner -Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8081
+        command: ./quarkus-demo-1.0-runner -Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8081
         component: quarkus-runner
         workdir: /projects/che-quarkus-demo/target
   - name: stop native
@@ -79,13 +74,7 @@ commands:
         command: pkill quarkus-demo-1.0-SNAPSHOT-runner
         component: quarkus-runner
         workdir: /projects/che-quarkus-demo/target
-  - name: start frontend (dev)
-    actions:
-      - type: exec
-        command: serve -l 3000 -s "/app"
-        component: frontend
-        workdir: /
-  - name: start frontend (native)
+  - name: start frontend
     actions:
       - type: exec
         command: serve -l 3000 -s "/app"
@@ -97,3 +86,18 @@ commands:
         command: pkill node
         component: frontend
         workdir: /
+  - name: connect java debugger
+    actions:
+      - type: vscode-launch
+        referenceContent: |
+          {
+          "version": "0.2.0",
+          "configurations": [
+            {
+              "type": "java",
+              "name": "Debug (Attach) - Remote",
+              "request": "attach",
+              "hostName": "localhost",
+              "port": 5005
+            }]
+          }
