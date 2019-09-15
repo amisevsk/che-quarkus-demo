@@ -2,11 +2,10 @@ apiVersion: 1.0.0
 metadata:
   generateName: che-quarkus-demo-
 projects:
-  - name: quarkus-demo
+  - name: che-quarkus-demo
     source:
       type: git
       location: https://github.com/amisevsk/che-quarkus-demo
-      branch: dev
 components:
   - 
     alias: quarkus-builder
@@ -19,6 +18,9 @@ components:
     volumes:
       - name: mavenrepo
         containerPath: /project/.m2
+    endpoints:
+      - name: '8080/tcp'
+        port: 8080
   - 
     alias: quarkus-runner
     type: dockerimage
@@ -27,6 +29,9 @@ components:
     mountSources: true
     command: ['tail']
     args: ['-f', '/dev/null']
+    endpoints:
+      - name: '8081/tcp'
+        port: 8081
   - 
     alias: java
     type: chePlugin
@@ -65,7 +70,7 @@ commands:
   - name: start native
     actions:
       - type: exec
-        command: ./quarkus-demo-1.0-SNAPSHOT-runner -Dquarkus.http.host=0.0.0.0
+        command: ./quarkus-demo-1.0-SNAPSHOT-runner -Dquarkus.http.host=0.0.0.0 -Dquarkus.http.port=8081
         component: quarkus-runner
         workdir: /projects/che-quarkus-demo/target
   - name: stop native
@@ -74,7 +79,13 @@ commands:
         command: pkill quarkus-demo-1.0-SNAPSHOT-runner
         component: quarkus-runner
         workdir: /projects/che-quarkus-demo/target
-  - name: start frontend
+  - name: start frontend (dev)
+    actions:
+      - type: exec
+        command: serve -l 3000 -s "/app"
+        component: frontend
+        workdir: /
+  - name: start frontend (native)
     actions:
       - type: exec
         command: serve -l 3000 -s "/app"

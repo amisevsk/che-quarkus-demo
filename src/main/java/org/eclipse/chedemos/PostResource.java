@@ -52,7 +52,6 @@ public class PostResource {
   @DELETE
   public Response delete(Post post) {
     if (post != null) {
-      LOG.infof("hello %s", post.toString());
       posts.remove(post);
       return Response.ok(posts).build();
     } else {
