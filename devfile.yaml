@@ -10,7 +10,7 @@ components:
   - 
     alias: quarkus-builder
     type: dockerimage
-    image: amisevsk/che-quarkus-builder:dev
+    image: amisevsk/che-quarkus-builder:dev-cached
     memoryLimit: 2Gi
     mountSources: true
     command: ['tail']
